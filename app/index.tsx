@@ -26,7 +26,7 @@ export default function AppLayout() {
       if (user) {
         router.replace('/(app)/home');
       } else {
-        router.replace('/get-started');
+        router.replace('/(auth)/sign-in');
       }
     }, 1600);
     return () => clearTimeout(timer);

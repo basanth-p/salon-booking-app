@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { makeRedirectUri } from 'expo-auth-session';
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 type UserType = {
@@ -36,8 +37,7 @@ type AuthContextType = {
   session: SessionType | null;
   user: UserType | null;
   loading: boolean;
-  signInWithPhone: (phone: string) => Promise<{ error: Error | null }>;
-  verifyOtp: (phone: string, token: string) => Promise<{ error: Error | null }>;
+  signInWithGoogle: () => Promise<{ data: any | null; error: Error | null }>;
   signOut: () => Promise<void>;
 };
 
@@ -68,27 +68,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signInWithPhone = async (phone: string) => {
+  const signInWithGoogle = async () => {
     try {
-      const { error } = await supabase.auth.signInWithOtp({
-        phone,
+      // Create the redirect URI using expo-auth-session
+      const redirectUri = makeRedirectUri({
+        scheme: 'salonbookingapp',
+        path: 'auth-callback'
       });
-      return { error };
-    } catch (error) {
-      return { error: error as Error };
-    }
-  };
 
-  const verifyOtp = async (phone: string, token: string) => {
-    try {
-      const { error } = await supabase.auth.verifyOtp({
-        phone,
-        token,
-        type: "sms",
+      console.log('Redirect URI:', redirectUri);
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+          redirectTo: redirectUri,
+        }
       });
-      return { error };
+      return { data, error };
     } catch (error) {
-      return { error: error as Error };
+      console.error('Error in signInWithGoogle:', error);
+      return { data: null, error: error as Error };
     }
   };
 
@@ -100,8 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     session,
     user,
     loading,
-    signInWithPhone,
-    verifyOtp,
+    signInWithGoogle,
     signOut,
   };
 

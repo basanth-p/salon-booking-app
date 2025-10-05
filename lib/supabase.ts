@@ -16,32 +16,31 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
 });
 
-export const signInWithPhone = async (phone: string) => {
+export const signInWithGoogle = async () => {
   try {
-    console.log('Making Supabase OTP request for:', phone);
-    const { data, error } = await supabase.auth.signInWithOtp({
-      phone,
+    console.log('Starting Google sign-in process...');
+    
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
+        redirectTo: Platform.select({
+          native: 'salonbookingapp://', // Your app's deep link URL
+          default: 'exp://localhost:8081',
+        }),
+        skipBrowserRedirect: true, // Important for mobile flow
+      }
     });
-    console.log('Full Supabase OTP response:', { data, error });
+    
+    console.log('Sign-in response:', { data, error });
     
     if (error) throw error;
     return { data, error: null };
   } catch (error) {
-    console.error('Detailed error in signInWithPhone:', error);
-    return { data: null, error };
-  }
-};
-
-export const verifyOTP = async (phone: string, token: string) => {
-  try {
-    const { data, error } = await supabase.auth.verifyOtp({
-      phone,
-      token,
-      type: 'sms',
-    });
-    if (error) throw error;
-    return { data, error: null };
-  } catch (error) {
+    console.error('Error signing in with Google:', error);
     return { data: null, error };
   }
 };
