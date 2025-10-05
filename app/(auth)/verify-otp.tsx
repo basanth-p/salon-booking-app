@@ -1,3 +1,4 @@
+import { SuccessAnimation } from '@/components/success-animation';
 import { ThemedText } from '@/components/themed-text';
 import { useAuth } from '@/context/auth';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -9,6 +10,7 @@ export default function VerifyOTPScreen() {
   const { phone } = useLocalSearchParams<{ phone: string }>();
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const [countdown, setCountdown] = useState(30);
   const { verifyOtp, signInWithPhone } = useAuth();
 
@@ -34,8 +36,12 @@ export default function VerifyOTPScreen() {
       return;
     }
 
-    // Successfully verified
-    router.replace('/(tabs)');
+    setLoading(false);
+    setShowSuccess(true);
+    // Navigate after showing success animation
+    setTimeout(() => {
+      router.replace('/(app)/home');
+    }, 1500);
   };
 
   const handleResendOTP = async () => {
@@ -50,44 +56,53 @@ export default function VerifyOTPScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <ThemedText style={styles.title}>Verify Phone Number</ThemedText>
-        <ThemedText style={styles.subtitle}>
-          Enter the code we sent to your phone
-        </ThemedText>
-
-        <MaskInput
-          value={otp}
-          onChangeText={setOtp}
-          mask={[/\d/, /\d/, /\d/, ' ', /\d/, /\d/, /\d/]}
-          style={styles.input}
-          keyboardType="number-pad"
-          placeholder="XXX XXX"
-          placeholderTextColor="#999"
-        />
-
-        <TouchableOpacity 
-          style={[styles.button, otp.length < 6 && styles.buttonDisabled]}
-          onPress={handleVerifyOTP}
-          disabled={otp.length < 6 || loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="white" />
-          ) : (
-            <ThemedText style={styles.buttonText}>
-              Verify OTP
+        {showSuccess ? (
+          <View style={styles.successContainer}>
+            <SuccessAnimation size={120} color="#4E342E" />
+            <ThemedText style={styles.successText}>Verification Successful!</ThemedText>
+          </View>
+        ) : (
+          <>
+            <ThemedText style={styles.title}>Verify Phone Number</ThemedText>
+            <ThemedText style={styles.subtitle}>
+              Enter the code we sent to your phone
             </ThemedText>
-          )}
-        </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={[styles.resendButton, countdown > 0 && styles.resendButtonDisabled]}
-          onPress={handleResendOTP}
-          disabled={countdown > 0}
-        >
-          <ThemedText style={styles.resendText}>
-            {countdown > 0 ? `Resend OTP in ${countdown}s` : 'Resend OTP'}
-          </ThemedText>
-        </TouchableOpacity>
+            <MaskInput
+              value={otp}
+              onChangeText={setOtp}
+              mask={[/\d/, /\d/, /\d/, ' ', /\d/, /\d/, /\d/]}
+              style={styles.input}
+              keyboardType="number-pad"
+              placeholder="XXX XXX"
+              placeholderTextColor="#999"
+            />
+
+            <TouchableOpacity 
+              style={[styles.button, otp.length < 6 && styles.buttonDisabled]}
+              onPress={handleVerifyOTP}
+              disabled={otp.length < 6 || loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <ThemedText style={styles.buttonText}>
+                  Verify OTP
+                </ThemedText>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.resendButton, countdown > 0 && styles.resendButtonDisabled]}
+              onPress={handleResendOTP}
+              disabled={countdown > 0}
+            >
+              <ThemedText style={styles.resendText}>
+                {countdown > 0 ? `Resend OTP in ${countdown}s` : 'Resend OTP'}
+              </ThemedText>
+            </TouchableOpacity>
+          </>
+        )}
       </View>
     </View>
   );
@@ -103,6 +118,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 60,
     alignItems: 'center',
+  },
+  successContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  successText: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#4E342E',
+    marginTop: 20,
   },
   title: {
     fontSize: 24,

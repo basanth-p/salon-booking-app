@@ -6,19 +6,36 @@ const SplashScreen = () => {
   const opacityAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.parallel([
-      Animated.timing(scaleAnim, {
-        toValue: 1,
-        duration: 1200,
-        useNativeDriver: true,
-        easing: Easing.out(Easing.exp),
-      }),
-      Animated.timing(opacityAnim, {
-        toValue: 1,
-        duration: 1200,
-        useNativeDriver: true,
-        easing: Easing.out(Easing.exp),
-      }),
+    Animated.sequence([
+      Animated.parallel([
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          useNativeDriver: true,
+          tension: 10,
+          friction: 2,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+          easing: Easing.out(Easing.exp),
+        }),
+      ]),
+      Animated.delay(400),
+      Animated.parallel([
+        Animated.timing(scaleAnim, {
+          toValue: 20,
+          duration: 400,
+          useNativeDriver: true,
+          easing: Easing.in(Easing.exp),
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 0,
+          duration: 400,
+          useNativeDriver: true,
+          easing: Easing.in(Easing.exp),
+        }),
+      ]),
     ]).start();
   }, [scaleAnim, opacityAnim]);
 

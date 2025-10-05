@@ -1,10 +1,40 @@
-import { supabase } from '@/lib/supabase';
-import { Session, User } from '@supabase/supabase-js';
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import { supabase } from "@/lib/supabase";
+import React, { createContext, useContext, useEffect, useState } from "react";
+
+type UserType = {
+  id: string;
+  phone?: string;
+  email?: string;
+  app_metadata: {
+    provider?: string;
+    providers?: string[];
+  };
+  user_metadata: {
+    [key: string]: any;
+  };
+  aud: string;
+  confirmation_sent_at?: string;
+  recovery_sent_at?: string;
+  email_confirmed_at?: string;
+  phone_confirmed_at?: string;
+  last_sign_in_at?: string;
+  role?: string;
+  updated_at?: string;
+  created_at?: string;
+};
+
+type SessionType = {
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+  expires_at: number;
+  token_type: string;
+  user: UserType;
+};
 
 type AuthContextType = {
-  session: Session | null;
-  user: User | null;
+  session: SessionType | null;
+  user: UserType | null;
   loading: boolean;
   signInWithPhone: (phone: string) => Promise<{ error: Error | null }>;
   verifyOtp: (phone: string, token: string) => Promise<{ error: Error | null }>;
@@ -14,24 +44,26 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<SessionType | null>(null);
+  const [user, setUser] = useState<UserType | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Check active sessions and sets the user
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
+    supabase.auth.getSession().then(({ data: { session } }: { data: { session: any } }) => {
+      setSession(session as SessionType);
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
     // Listen for changes on auth state
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event: string, session: any) => {
+        setSession(session as SessionType);
+        setUser(session?.user ?? null);
+        setLoading(false);
+      }
+    );
 
     return () => subscription.unsubscribe();
   }, []);
@@ -52,7 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { error } = await supabase.auth.verifyOtp({
         phone,
         token,
-        type: 'sms',
+        type: "sms",
       });
       return { error };
     } catch (error) {
@@ -83,7 +115,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }

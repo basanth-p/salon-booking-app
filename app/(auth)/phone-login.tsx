@@ -10,22 +10,30 @@ export default function PhoneLoginScreen() {
   const [loading, setLoading] = useState(false);
   const { signInWithPhone } = useAuth();
 
+  const [errorMsg, setErrorMsg] = useState('');
+
   const handleSendOTP = async () => {
+    setErrorMsg('');
     if (phone.length < 10) {
-      // Show error
+      setErrorMsg('Please enter a valid phone number');
       return;
     }
 
     setLoading(true);
     const formattedPhone = `+${phone.replace(/\D/g, '')}`;
-    const { error } = await signInWithPhone(formattedPhone);
+    console.log('Phone before formatting:', phone);
+    console.log('Phone after formatting:', formattedPhone);
+    console.log('Sending OTP to:', formattedPhone);
     
-    if (error) {
-      // Show error
+    const result = await signInWithPhone(formattedPhone);
+    console.log('Supabase response:', result);
+
+    if (result.error) {
+      console.error('Error sending OTP:', result.error);
+      setErrorMsg(result.error.message || 'Failed to send OTP. Please try again.');
       setLoading(false);
       return;
-    }
-
+    }    console.log('OTP sent successfully');
     router.push({
       pathname: '/verify-otp',
       params: { phone: formattedPhone }
@@ -43,13 +51,19 @@ export default function PhoneLoginScreen() {
 
         <MaskInput
           value={phone}
-          onChangeText={setPhone}
+          onChangeText={(text) => {
+            setPhone(text);
+            setErrorMsg('');
+          }}
           mask={['+', /\d/, /\d/, ' ', /\d/, /\d/, /\d/, ' ', /\d/, /\d/, /\d/, ' ', /\d/, /\d/, /\d/, /\d/]}
-          style={styles.input}
+          style={[styles.input, errorMsg ? styles.inputError : null]}
           keyboardType="phone-pad"
           placeholder="+91 XXX XXX XXXX"
           placeholderTextColor="#999"
         />
+        {errorMsg ? (
+          <ThemedText style={styles.errorText}>{errorMsg}</ThemedText>
+        ) : null}
 
         <TouchableOpacity 
           style={[styles.button, !phone && styles.buttonDisabled]}
@@ -101,6 +115,18 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#4E342E',
     marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  inputError: {
+    borderColor: '#ff3b30',
+  },
+  errorText: {
+    color: '#ff3b30',
+    fontSize: 14,
+    marginTop: -15,
+    marginBottom: 20,
+    alignSelf: 'flex-start',
   },
   button: {
     backgroundColor: '#4E342E',
