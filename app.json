@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "salon-booking-app",
-    "slug": "salon-booking-app",
+    "name": "home-bonzenga",
+    "slug": "home-bonzenga",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "salonbookingapp",
+    "scheme": "home-bonzenga",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -48,9 +48,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "c6c61a95-199a-4052-8622-433de111688c"
+        "projectId": "305fcf79-ba58-47b5-a607-0daa53c435a3"
       }
     },
-    "owner": "basanth-p"
+    "owner": "home-bonzenga"
   }
 }
